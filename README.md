@@ -1,2 +1,2 @@
-# Sleep_Bank
+# Sleep Bank
 睡眠不足を"負債"に見立てる睡眠管理アプリ
