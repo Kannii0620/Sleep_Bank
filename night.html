@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>睡眠銀行 | おやすみ</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- 仮の見た目。style.css ができたら、キャラ担当と相談してそちらに移す -->
+  <style>
+    body {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      font-family: sans-serif;
+      background: #1b1d2b;
+      color: #f2f2f2;
+    }
+    section {
+      margin-bottom: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #2a2d40;
+    }
+    .label { margin: 0; color: #b8bbd1; font-size: 0.9rem; }
+    .big { font-size: 2rem; font-weight: bold; }
+    .hidden { display: none; }
+    #charaFace {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 8px;
+      border: 2px dashed #6b6f8f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #b8bbd1;
+      font-size: 0.8rem;
+    }
+    #charaLine { text-align: center; }
+    button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    #goodnightButton { background: #f5c542; color: #1b1d2b; font-weight: bold; }
+    #cancelButton, #saveSettingsButton { background: #44486a; color: #f2f2f2; }
+    a { color: #f5c542; }
+    label { display: block; margin-top: 8px; }
+    input { font-size: 1rem; padding: 4px; }
+  </style>
+</head>
+<body>
+  <h1>睡眠銀行</h1>
+
+  <!-- 1. 窓口キャラ（絵はキャラ担当が差し替える） -->
+  <section>
+    <div id="charaFace">キャラの絵</div>
+    <p id="charaLine">こんばんは</p>
+  </section>
+
+  <!-- 2. 今の借金（昨日の夜までの分） -->
+  <section>
+    <p class="label">今の借金</p>
+    <p><span class="big" id="currentDebt">0</span> コイン</p>
+  </section>
+
+  <!-- 3. 今夜の見込み（まだおやすみしていないとき） -->
+  <section id="previewArea" class="hidden">
+    <p class="label">今寝て <span id="wakeTimeLabel">7:00</span> に起きると</p>
+    <p>睡眠 <span id="sleepNow">-</span> → 明日の借金 <span class="big" id="debtNow">-</span> コイン</p>
+
+    <p class="label">あと1時間起きていると</p>
+    <p>睡眠 <span id="sleepLater">-</span> → <span id="debtLater">-</span> コイン（<span id="debtDiff">-</span>）</p>
+
+    <button id="goodnightButton">おやすみ</button>
+  </section>
+
+  <!-- 4. おやすみ中（おやすみを押したあと） -->
+  <section id="sleepingArea" class="hidden">
+    <p id="sleepingMessage"></p>
+    <a href="index.html">おはよう画面へ</a>
+    <button id="cancelButton">おやすみを取り消す</button>
+  </section>
+
+  <!-- 5. 今夜はもう記録済み（同じ夜の記録は1つだけ） -->
+  <section id="doneArea" class="hidden">
+    <p>今夜の記録はもう済んでいます。また明日の夜に来てね。</p>
+    <a href="index.html">ホームへ</a>
+  </section>
+
+  <!-- 6. 設定 -->
+  <section>
+    <h2>設定</h2>
+    <label>目標睡眠時間
+      <input type="number" id="targetInput" min="4" max="12" step="0.5"> 時間
+    </label>
+    <label>起きる予定
+      <input type="time" id="wakeInput">
+    </label>
+    <button id="saveSettingsButton">設定を保存</button>
+    <p id="settingsMessage"></p>
+  </section>
+
+  <!-- bank.js を先に読み込む（calcDebt と addDays を night.js で使うため） -->
+  <script src="bank.js"></script>
+  <script src="night.js"></script>
+</body>
+</html>
