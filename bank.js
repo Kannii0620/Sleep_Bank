@@ -1,5 +1,3 @@
-const { settings } = require("node:cluster");
-
 const INTEREST_RATE = 1.1;    // 1日あたりの利息（10%）
 const COINS_PER_HOUR = 100;   // 睡眠1時間＝100コイン
 
@@ -212,17 +210,43 @@ function goodmorning() {
 }
 
 //ユーザーから受け取る起床予定時間と、目標睡眠時間をsettingsに保存する
-function saveettings (targetHours, wakeTime){
-    if(targetHours >= 3, targetHours < 12){
-        return { ok: false, code: "INVALID_TIME", reason: "睡眠時間は3時間から12時間の間にしてね" }
+function saveSettings (targetHours, wakeTime){
+    if(targetHours < 4 || targetHours > 12 || wakeTime === ""){
+        return { ok: false, code: "INVALID_TIME", reason: "睡眠時間は4~12時間、起きる予定の時刻も入れてね" };
     }
-     const record = {
-         targetHours: targetHours,
-         wakeTime: wakeTime
+    const settings = {
+        targetHours: targetHours,
+        wakeTime: wakeTime
     };
-    settings.push(record);
+    save("settings", settings);
+    return {ok: true, targetHours: targetHours, wakeTime: wakeTime};
 }
 
+/* 今の状態を返す（どの画面も、開いた瞬間に呼ぶ）
+
+1. sleptAt と履歴を読む
+2. 寝ているか ＝ sleptAt があるか
+3. 今の借金と連続日数 ＝ calcDebt(履歴, 今日) … 昨日の夜まで
+4. まとめて返す（保存はしない、失敗もしない）
+
+返すもの：
+  { ok: true, isSleeping, sleptAt, debt, streak }
+  ・isSleeping：寝ていれば true
+  ・sleptAt：寝た時刻（起きているときは null）
+*/
+
+function getStatus(){
+    //1. sleptAtと履歴を読む
+    const history = load("history", []);
+    const today = todayString();
+    const sleptAt = load("sleptAt", null);
+    // 2. 寝ているか ＝ sleptAt があるか
+    const isSleeping = sleptAt !== null;
+    // 3. 今の借金と連続日数 ＝ calcDebt(履歴, 今日) … 昨日の夜まで
+    const result = calcDebt(history, today);
+    // 4. まとめて返す（保存はしない、失敗もしない）
+    return {ok: true, isSleeping, sleptAt, debt: result.debt, streak: result.streak}
+}
 
 // Node.jsでテストするための1行（ブラウザでは無視される）
 if (typeof module !== "undefined") {
