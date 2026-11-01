@@ -3,9 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST</title>
+    <title>睡眠銀行</title>
+    <style>
+        body {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            background: #f3f6fa;
+            color: #243247;
+            font-family: sans-serif;
+            line-height: 1.6;
+        }
+
+        h1 { font-size: 24px; }
+        h2 { margin-top: 0; font-size: 18px; }
+
+        section {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        #coin-count {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .character-placeholder {
+            padding: 24px 12px;
+            border: 2px dashed #b8c5d6;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .character-message {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f3f6fa;
+        }
+
+        button {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #2859a3;
+            color: #fff;
+            font: inherit;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:focus-visible {
+            outline: 3px solid #243247;
+            outline-offset: 3px;
+        }
+    </style>
 </head>
 <body>
-    今日の晩御飯は酢鳥です。
+    <header>
+        <h1>睡眠銀行</h1>
+    </header>
+    <main>
+        <div id="home-screen" hidden>
+            <section aria-labelledby="coin-heading">
+                <h2 id="coin-heading" tabindex="-1">現在のコイン数</h2>
+                <!-- 仮の数値です。計算処理との接続は後から行います。 -->
+                <p><span id="coin-count">0</span> コイン</p>
+            </section>
+            <section aria-labelledby="character-heading">
+                <h2 id="character-heading">窓口キャラクター</h2>
+                <!-- キャラクターの画像ができたら、この枠を画像に置き換えます。 -->
+                <p class="character-placeholder">キャラクター準備中</p>
+                <!-- 計算処理につなぐまでは、数値を表示しません。 -->
+                <p>今回の利息：<span id="interest-result">未計算</span></p>
+                <p class="character-message" id="character-message">今日も睡眠銀行へようこそ。ゆっくり休んでね。</p>
+            </section>
+        </div>
+
+        <section id="sleeping-screen" aria-labelledby="sleeping-heading">
+            <h2 id="sleeping-heading" tabindex="-1">睡眠中</h2>
+            <p>おやすみなさい。ゆっくり休んでください。</p>
+            <button id="wake-up" type="button">起きた</button>
+        </section>
+
+        <section id="morning-screen" aria-labelledby="morning-heading" hidden>
+            <h2 id="morning-heading" tabindex="-1">おはようございます</h2>
+            <p>昨夜はよく眠れましたか？</p>
+            <button id="show-result" type="button">結果を見る</button>
+        </section>
+
+        <section id="result-screen" aria-labelledby="result-heading" hidden>
+            <h2 id="result-heading" tabindex="-1">今回の睡眠結果</h2>
+            <p>睡眠時間とコインの計算結果は、計算処理をつないだ後に表示します。</p>
+            <button id="back-home" type="button">ホームに戻る</button>
+        </section>
+    </main>
+    <script src="morning.js"></script>
 </body>
 </html>
