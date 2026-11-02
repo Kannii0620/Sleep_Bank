@@ -13,6 +13,8 @@ function showScreen(screenId) {
 // 睡眠中 → おはよう → 結果 → 通常
 // ここでは画面だけを切り替えます。睡眠の記録・計算・保存は未接続です。
 document.getElementById('wake-up').addEventListener('click', () => {
+    // bank.jsのgoodmorning関数を呼び出す
+    // goodmorning();
     showScreen('morning-screen');
 });
 
