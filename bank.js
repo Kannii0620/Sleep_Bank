@@ -1,5 +1,3 @@
-const { settings } = require("node:cluster");
-
 const INTEREST_RATE = 1.1;    // 1日あたりの利息（10%）
 const COINS_PER_HOUR = 100;   // 睡眠1時間＝100コイン
 
