@@ -6,8 +6,13 @@ const sleepResult = goodnight();
 console.log(sleepResult);
 
 // getstatus
-const ifstatus = getStatus();
-console.log(ifstatus);
+function get_status(){
+    const ifstatus = getStatus();
+    console.log(ifstatus);
+    return ifstatus;
+}
+
+const ifstatus = get_status();
 
 if (ifstatus.isSleeping) {
     showScreen('sleeping-screen');
@@ -49,5 +54,7 @@ document.getElementById('show-result').addEventListener('click', () => {
 });
 
 document.getElementById('back-home').addEventListener('click', () => {
+    const coinCount = getStatus().debt;
+    document.getElementById('coin-count').textContent = coinCount;
     showScreen('home-screen');
 });
