@@ -1,3 +1,9 @@
+// テスト
+localStorage.clear();
+const saveset = saveSettings(8, "07:00");
+console.log(saveset);
+const sleepResult = goodnight();
+console.log(sleepResult);
 // 指定した画面だけを表示します。
 function showScreen(screenId) {
     const screens = document.querySelectorAll('main > div, main > section');
@@ -14,7 +20,16 @@ function showScreen(screenId) {
 // ここでは画面だけを切り替えます。睡眠の記録・計算・保存は未接続です。
 document.getElementById('wake-up').addEventListener('click', () => {
     // bank.jsのgoodmorning関数を呼び出す
-    // goodmorning();
+    const result = goodmorning();
+    console.log(result);
+
+    const sleepMinutes = result.sleepMinutes;
+    const debt = result.debt;
+    const change = result.change;
+    document.getElementById('sleep-duration').textContent = `${sleepMinutes}分`;
+    document.getElementById('current-debt').textContent = `${debt}コイン`;
+    document.getElementById('change-result').textContent = `${change}コイン`;
+
     showScreen('morning-screen');
 });
 
