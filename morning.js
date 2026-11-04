@@ -1,10 +1,3 @@
-// テスト
-localStorage.clear();
-const saveset = saveSettings(8, "07:00");
-console.log(saveset);
-const sleepResult = goodnight();
-console.log(sleepResult);
-
 // getstatus
 function get_status(){
     const ifstatus = getStatus();
