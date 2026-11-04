@@ -247,6 +247,44 @@ function getStatus(){
     // 4. まとめて返す（保存はしない、失敗もしない）
     return {ok: true, isSleeping, sleptAt, debt: result.debt, streak: result.streak}
 }
+/* おやすみの取り消し（間違えておやすみを押したとき用）
+
+1. 寝ていない（sleptAt がない） → 失敗（NOT_SLEEPING）
+2. sleptAt を空にする（履歴にはまだ書いてないので、履歴は触らない）
+3. 成功を返す { ok: true, sleptAt } … 取り消したおやすみの時刻
+
+使い方（画面側）：
+  const result = cancelSleep();
+  if (result.ok) {
+      // result.sleptAt で「0:15のおやすみを取り消したよ」と表示
+  } else {
+      // result.reason を表示
+  }
+*/
+function cancelSleep(){
+    const sleptAt = load("sleptAt", null);
+    if(!sleptAt){
+        return { ok: false, code: "NOT_SLEEPING", reason: "まだおやすみしていません" };
+    }
+    save("sleptAt", null);
+
+    return {ok: true, sleptAt };
+
+}
+
+function fastForward(minutes) {
+    if(minutes <= 0) {
+        return {ok: false ,code: "INVALID_FORWARD_TIME", reason: "早送り時間は1分以上にしてね"};
+    }
+    const timeOffset = load("timeOffset", 0);
+    const minute = Number(minutes);
+    const forwardTime = timeOffset + Number(minutes);
+    if (!(minute > 0)){
+        return{ok: false ,code: "INVALID_FORWARD_TIME", reason: "早送り時間は有効な整数にしてね"};
+    }
+    save("timeOffset", forwardTime);
+    return {ok: true, now: nowString()}
+}
 
 // Node.jsでテストするための1行（ブラウザでは無視される）
 if (typeof module !== "undefined") {
