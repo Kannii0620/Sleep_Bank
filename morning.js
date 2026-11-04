@@ -4,6 +4,17 @@ const saveset = saveSettings(8, "07:00");
 console.log(saveset);
 const sleepResult = goodnight();
 console.log(sleepResult);
+
+// getstatus
+const status = getStatus();
+console.log(status);
+
+if (status.isSleeping) {
+    showScreen('wake-up');
+}else {
+    showScreen('home-screen');
+}
+
 // 指定した画面だけを表示します。
 function showScreen(screenId) {
     const screens = document.querySelectorAll('main > div, main > section');
