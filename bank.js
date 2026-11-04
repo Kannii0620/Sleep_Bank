@@ -273,15 +273,12 @@ function cancelSleep(){
 }
 
 function fastForward(minutes) {
-    if(minutes <= 0) {
-        return {ok: false ,code: "INVALID_FORWARD_TIME", reason: "早送り時間は1分以上にしてね"};
+    const forwardMinute = Number(minutes);
+    if (!(forwardMinute > 0)){
+        return{ok: false ,code: "INVALID_FORWARD_TIME", reason: "早送りは1分以上の数字にしてね"};
     }
     const timeOffset = load("timeOffset", 0);
-    const minute = Number(minutes);
-    const forwardTime = timeOffset + Number(minutes);
-    if (!(minute > 0)){
-        return{ok: false ,code: "INVALID_FORWARD_TIME", reason: "早送り時間は有効な整数にしてね"};
-    }
+    const forwardTime = timeOffset + forwardMinute;
     save("timeOffset", forwardTime);
     return {ok: true, now: nowString()}
 }
