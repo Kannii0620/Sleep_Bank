@@ -10,7 +10,7 @@ const ifstatus = getStatus();
 console.log(ifstatus);
 
 if (ifstatus.isSleeping) {
-    showScreen('wake-up');
+    showScreen('sleeping-screen');
 }else {
     showScreen('home-screen');
 }
