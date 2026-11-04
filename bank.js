@@ -1,3 +1,5 @@
+const { settings } = require("node:cluster");
+
 const INTEREST_RATE = 1.1;    // 1日あたりの利息（10%）
 const COINS_PER_HOUR = 100;   // 睡眠1時間＝100コイン
 
@@ -281,6 +283,25 @@ function fastForward(minutes) {
     const forwardTime = timeOffset + forwardMinute;
     save("timeOffset", forwardTime);
     return {ok: true, now: nowString()}
+}
+
+/* デモ用：全部消して最初の状態に戻す
+
+1. bank.js が保存している4つ（history / settings / timeOffset / sleptAt）を消す
+   ・localStorage.clear() は使わない（同じサイトのほかのページのデータまで消えるため）
+2. 成功を返す { ok: true }（失敗はしない）
+
+使い方（画面側）：
+  resetDemo();
+  // そのあと画面を描き直す（設定画面から始まる）
+*/
+function resetDemo() {
+    localStorage.removeItem("history");
+    localStorage.removeItem("settings");
+    localStorage.removeItem("timeOffset");
+    localStorage.removeItem("sleptAt");
+
+    return {ok: true};
 }
 
 // Node.jsでテストするための1行（ブラウザでは無視される）
