@@ -6,10 +6,10 @@ const sleepResult = goodnight();
 console.log(sleepResult);
 
 // getstatus
-const status = getStatus();
-console.log(status);
+const ifstatus = getStatus();
+console.log(ifstatus);
 
-if (status.isSleeping) {
+if (ifstatus.isSleeping) {
     showScreen('wake-up');
 }else {
     showScreen('home-screen');
