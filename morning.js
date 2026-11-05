@@ -1,15 +1,14 @@
-// getstatus
-function get_status(){
-    const ifstatus = getStatus();
-    console.log(ifstatus);
-    return ifstatus;
+const status = getStatus();
+
+if (status.isSleeping) {
+    showScreen('sleeping-screen');
+} else {
+    renderHome(status);
 }
 
-const ifstatus = get_status();
-
-if (ifstatus.isSleeping) {
-    showScreen('sleeping-screen');
-}else {
+// ホーム画面に最新の借金を表示します。
+function renderHome(currentStatus = getStatus()) {
+    document.getElementById('coin-count').textContent = currentStatus.debt;
     showScreen('home-screen');
 }
 
@@ -26,18 +25,24 @@ function showScreen(screenId) {
 }
 
 // 睡眠中 → おはよう → 結果 → 通常
-// ここでは画面だけを切り替えます。睡眠の記録・計算・保存は未接続です。
 document.getElementById('wake-up').addEventListener('click', () => {
-    // bank.jsのgoodmorning関数を呼び出す
     const result = goodmorning();
-    console.log(result);
 
-    const sleepMinutes = result.sleepMinutes;
+    if (!result.ok) {
+        alert(result.reason);
+        return;
+    }
+
+    const sleepMinutes = Math.floor(result.sleepMinutes);
+    const sleepHours = Math.floor(sleepMinutes / 60);
+    const remainingMinutes = sleepMinutes % 60;
     const debt = result.debt;
     const change = result.change;
-    document.getElementById('sleep-duration').textContent = `${sleepMinutes}分`;
+    const changeSign = change > 0 ? '+' : '';
+
+    document.getElementById('sleep-duration').textContent = `${sleepHours}時間${remainingMinutes}分`;
     document.getElementById('current-debt').textContent = `${debt}コイン`;
-    document.getElementById('change-result').textContent = `${change}コイン`;
+    document.getElementById('change-result').textContent = `${changeSign}${change}コイン`;
 
     showScreen('morning-screen');
 });
@@ -47,7 +52,5 @@ document.getElementById('show-result').addEventListener('click', () => {
 });
 
 document.getElementById('back-home').addEventListener('click', () => {
-    const coinCount = getStatus().debt;
-    document.getElementById('coin-count').textContent = coinCount;
-    showScreen('home-screen');
+    renderHome();
 });
