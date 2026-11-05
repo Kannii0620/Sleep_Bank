@@ -74,6 +74,7 @@ const SHEEP_FACES = {
 };
 
 // 32×32 のマス目に図形をぬって、ひつじを作る。返すのは「色の文字」の2次元配列
+// 表情（mood）で変わるのは顔だけ。体・ぼうしはどの表情でも同じ
 function buildSheep(mood) {
     const size = 32;
     const grid = Array.from({ length: size }, () => Array(size).fill("."));
@@ -110,8 +111,8 @@ function buildSheep(mood) {
     // 顔
     paint(ellipse(16, 19.5, 6, 5.2), "S");
 
-    // ナイトキャップ（三角形）。ねてるときは少し右にたおれる
-    const tipX = mood === "sleep" ? 23 : 20;
+    // ナイトキャップ（三角形）
+    const tipX = 20;
     paint((x, y) => {
         if (y < 3 || y > 13) return false;
         const t = (y - 3) / 10;              // 0（先っぽ）〜 1（ふち）
@@ -173,8 +174,6 @@ function setMood(mood) {
             ctx.fillRect(x, y, 1, 1);
         });
     });
-    // 動き方（ぴょんぴょん・ゆらゆら など）は style.css で表情ごとに変える
-    el("charaBox").dataset.mood = mood;
 }
 
 
@@ -314,11 +313,10 @@ function greetingLines(status, settings) {
 // ===== 6. デモ用ボタン =====
 
 function setupDemo() {
-    // 4つの表情
+    // 4つの表情（顔だけ変える。セリフはそのまま）
     document.querySelectorAll("[data-mood]").forEach(button => {
         button.addEventListener("click", () => {
             setMood(button.dataset.mood);
-            say(DEMO_LINES[button.dataset.mood]);
         });
     });
 
@@ -349,14 +347,6 @@ function setupDemo() {
         });
     }
 }
-
-const DEMO_LINES = {
-    normal: "いらっしゃいませ〜 今夜も記帳していってね",
-    happy: "目標達成！ 借金がへったよ、えらい！",
-    sad: "そろそろ返してほしいな…",
-    sleep: "……zzz むにゃ…",
-};
-
 
 // ===== 7. ページを開いたときに動かす =====
 
