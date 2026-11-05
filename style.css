@@ -214,10 +214,32 @@ p { margin: 0; }
 /* ===== 6. セリフ ===== */
 
 .dialog {
-    min-height: 104px;
     padding-top: 22px;
+}
+
+/* セリフの枠全体がボタン（押す・Enter・スペースで次へ） */
+.dialog-button {
+    display: block;
+    width: 100%;
+    min-height: 66px;
+    padding: 0 24px 0 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
     cursor: pointer;
     user-select: none;
+}
+
+/* 画面には出さず、読み上げだけに使う */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
 .name {
@@ -230,7 +252,10 @@ p { margin: 0; }
     font-size: 0.95rem;
 }
 
-.line { font-size: 1.15rem; }
+.line {
+    display: block;
+    font-size: 1.15rem;
+}
 
 .next {
     position: absolute;
@@ -331,6 +356,8 @@ p { margin: 0; }
 }
 
 .btn:focus-visible,
+.dialog-button:focus-visible,
+.text-button:focus-visible,
 .mini:focus-visible,
 .chip-button:focus-visible {
     outline: 3px solid var(--gold);

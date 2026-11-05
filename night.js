@@ -9,6 +9,7 @@
 6. ボタンと関数を結びつける
 
 保存・計算は bank.js の関数（goodnight / saveSettings / getStatus / cancelSleep）に任せる。
+寝ている間は設定を変えられないようにする（朝に目標を下げて、その夜の判定を変えられないように）。
 今の時刻は new Date() ではなく bank.js の now() を使う（早送りを効かせるため）。
 */
 
@@ -104,7 +105,6 @@ function renderNightPanel(status, settings) {
         const slept = new Date(status.sleptAt);
         el("sleptClock").textContent = formatClock(slept);
         el("sleptFor").textContent = formatMinutes(Math.max(0, (nowDate - slept) / 60000));
-        el("cancelButton").hidden = !hasBankFunction("cancelSleep");
         return;
     }
 
@@ -143,13 +143,29 @@ function onGoodnight() {
         if (result.code === "NO_SETTINGS") openSettings();
         return;
     }
+    settingsOpen = false; // 寝ている間は設定を閉じておく
     render();
     setMood("sleep");
     say([`${formatClock(new Date(result.sleptAt))} に記帳したよ。おやすみなさい…`, "起きたら『おはよう』を押してね"]);
+    el("dialogButton").focus(); // 押したボタンが押せなくなるので、セリフに移る
+}
+
+// おやすみの取り消し。bank.js に cancelSleep（#13）があれば、それを使う。
+// まだないときだけ、同じことを bank.js の load / save で行う（#13 がマージされたら、この分岐は消す）
+function cancelTonight() {
+    if (hasBankFunction("cancelSleep")) {
+        return cancelSleep();
+    }
+    const sleptAt = load("sleptAt", null);
+    if (!sleptAt) {
+        return { ok: false, code: "NOT_SLEEPING", reason: "まだおやすみしていません" };
+    }
+    save("sleptAt", null);
+    return { ok: true, sleptAt };
 }
 
 function onCancel() {
-    const result = cancelSleep(); // bank.js（#13）
+    const result = cancelTonight();
     if (!result.ok) {
         say(result.reason);
         return;
@@ -159,8 +175,18 @@ function onCancel() {
     say(`${formatClock(new Date(result.sleptAt))} のおやすみを取り消したよ`);
 }
 
+// 寝ている間は設定を変えさせない。変えられないときは理由を言って false を返す
+function canChangeSettings() {
+    if (getStatus().isSleeping) {
+        say("寝ている間は設定を変えられないよ。おはようのあとで変えてね");
+        return false;
+    }
+    return true;
+}
+
 // 設定を開く（今の設定を入力欄に入れておく）
 function openSettings() {
+    if (!canChangeSettings()) return;
     const settings = load("settings", null) || { targetHours: 7, wakeTime: "07:00" };
     el("targetInput").value = settings.targetHours;
     el("wakeInput").value = settings.wakeTime;
@@ -170,6 +196,11 @@ function openSettings() {
 
 function onSaveSettings(event) {
     event.preventDefault(); // フォームの送信でページが読み直されないようにする
+    if (!canChangeSettings()) {
+        settingsOpen = false;
+        render();
+        return;
+    }
     const result = saveSettings(Number(el("targetInput").value), el("wakeInput").value); // bank.js
     if (!result.ok) {
         say(result.reason);

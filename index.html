@@ -46,11 +46,15 @@
       </div>
     </section>
 
-    <!-- 3. セリフ（押すと次のセリフへ） -->
-    <section class="panel dialog" id="dialog" aria-live="polite">
-      <span class="name">ひつじ</span>
-      <p class="line" id="line"></p>
-      <span class="next" id="next" aria-hidden="true">▼</span>
+    <!-- 3. セリフ（押すと次のセリフへ。ボタンなので Enter / スペースでも進む） -->
+    <section class="panel dialog" aria-label="ひつじのセリフ">
+      <span class="name" aria-hidden="true">ひつじ</span>
+      <button class="dialog-button" id="dialogButton" type="button">
+        <span class="line" id="line"></span>
+        <span class="next" id="next" aria-hidden="true">▼</span>
+      </button>
+      <!-- 読み上げ用：1文字ずつではなく、1つのセリフをまとめて読ませる -->
+      <span class="sr-only" id="lineFull" aria-live="polite"></span>
     </section>
 
     <!-- 4. 見込み・おやすみ中・設定（どれか1つだけ表示） -->
@@ -77,7 +81,7 @@
             <p class="card-value gold" id="sleptFor">-</p>
           </div>
         </div>
-        <button class="text-button" id="cancelButton" type="button" hidden>まちがえた！おやすみを取り消す</button>
+        <button class="text-button" id="cancelButton" type="button">おやすみを取り消す</button>
       </div>
 
       <form id="settingsArea" class="settings" hidden>

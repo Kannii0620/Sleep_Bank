@@ -194,6 +194,7 @@ function showNextLine() {
     if (text === undefined) return;
     clearInterval(typingTimer);
     typingFull = text;
+    el("lineFull").textContent = text; // 読み上げ用
     let shown = 0;
     el("line").textContent = "";
     typingTimer = setInterval(() => {
@@ -211,7 +212,7 @@ function finishTyping() {
     el("next").hidden = lineQueue.length === 0;
 }
 
-// セリフの枠を押したとき：とちゅうなら全部出す、出しきっていたら次へ
+// セリフの枠（ボタン）を押したとき：とちゅうなら全部出す、出しきっていたら次へ
 function onDialogClick() {
     if (typingTimer) {
         finishTyping();
@@ -403,7 +404,7 @@ function start() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    el("dialog").addEventListener("click", onDialogClick);
+    el("dialogButton").addEventListener("click", onDialogClick);
     setupNight();   // night.js
     setupMorning(); // morning.js
     setupDemo();
