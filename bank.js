@@ -125,22 +125,25 @@ function todayString() {
 
 1. 設定がない → 失敗（NO_SETTINGS）
 2. もう寝ている → 失敗（ALREADY_SLEEPING）
-3. 今の時刻を sleptAt に仮置きする
+3. 今の時刻と、今の目標を仮置きする
 4. 成功を返す { ok, sleptAt }
 */
 function goodnight() {
     // 1. 設定がない → 失敗
-    if (!load("settings", null)) { //保存されていない、null、偽
+    const settings = load("settings", null);
+    if (!settings){
         return { ok: false, code: "NO_SETTINGS", reason: "先に目標睡眠時間を設定してね" }
     }
     // 2. もう寝ている → 失敗
     if (load("sleptAt", null)) {
         return { ok: false, code: "ALREADY_SLEEPING", reason: "もう寝ています" }
     }
-    // 3. 今の時刻を sleptAt に仮置きする
+    // 3. 今の時刻と、今の目標を仮置きする
     const nowTime = nowString(); //現在時刻
     save("sleptAt", nowTime);
-    // 4. 成功を返す { ok, sleptAt }
+    //4. sleptTargetHours に settings の目標を保存
+    save("sleptTargetHours", settings.targetHours);
+    //5. 成功を返す { ok, sleptAt }
     return { ok: true, sleptAt: nowTime };
 }
 
@@ -190,12 +193,13 @@ function goodmorning() {
         date: lastNight,
         sleptAt: sleptAt,
         wokeAt: wokeAt,
-        targetHours: load("settings", null).targetHours,
+        targetHours: load("sleptTargetHours", load("settings", null).targetHours),
         manual: false
     };
     history.push(record);
     save("history", history);
     save("sleptAt", null);
+    save("sleptTargetHours", null);
 
     // 7. 足した後の借金
     const debtAfter = calcDebt(history, today).debt;
@@ -305,7 +309,7 @@ function cancelSleep() {
         return { ok: false, code: "NOT_SLEEPING", reason: "まだおやすみしていません" };
     }
     save("sleptAt", null);
-
+    save("sleptTargetHours", null);
     return { ok: true, sleptAt };
 
 }
@@ -346,6 +350,7 @@ function resetDemo() {
     localStorage.removeItem("settings");
     localStorage.removeItem("timeOffset");
     localStorage.removeItem("sleptAt");
+    localStorage.removeItem("sleptTargetHours");
 
     return { ok: true };
 }
