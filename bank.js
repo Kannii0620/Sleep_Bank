@@ -235,14 +235,16 @@ function saveSettings(targetHours, wakeTime) {
 4. 昨夜の記録を探す
 5. キャラの気分 ＝ 昨夜の記録で決める
 6. 昨日が未記録か（初日は除く）
-7. まとめて返す（保存はしない、失敗もしない）
+7. 信用ランク（連続達成日数で決める）
+8. まとめて返す（保存はしない、失敗もしない）
 
 返すもの：
-  { ok: true, isSleeping, sleptAt, debt, streak, mood, missedYesterday }
+  { ok: true, isSleeping, sleptAt, debt, streak, mood, missedYesterday, rank}
   ・isSleeping：寝ていれば true
   ・sleptAt：寝た時刻（起きているときは null）
   ・mood：昨夜 達成 → "happy"、未達 → "sad"、未記録・初日 → "normal"
   ・missedYesterday：昨夜の記録がなければ true（初日は false）
+  ・rank：連続達成 0〜2日 "bronze"、3〜6 "silver"、7〜13 "gold"、14〜20 "platinum"、21〜27 "master"、28〜 "predator"
 */
 function getStatus() {
     //1. sleepAtと履歴を読む
@@ -276,8 +278,29 @@ function getStatus() {
     //6.昨日が未記録か(初日は除く)
     const missedYesterday = history.length !== 0 && !record;//初日以外での、未記録
 
-
-    //7. まとめて返す
+    // 7. 信用ランク（連続達成日数で決める）
+    const streak = result.streak;
+    let rank = "bronze";
+    if(streak >= 0 && streak <3){
+        rank = "bronze";
+    }
+    else if(streak >= 3 && streak <7){
+        rank = "silver";
+    }
+    else if(streak >= 7 && streak <14){
+        rank = "gold";
+    }
+    else if(streak >= 14 && streak <21){
+        rank = "platinum";
+    }
+    else if(streak >= 21 && streak <28){
+        rank = "master";
+    }
+    else if(streak >= 28){
+        rank = "predator";
+    }
+    
+    //8. まとめて返す
     return {
         ok: true,
         isSleeping,
@@ -285,7 +308,8 @@ function getStatus() {
         debt: result.debt,
         streak: result.streak,
         mood,
-        missedYesterday
+        missedYesterday,
+        rank
     }
 }
 
@@ -324,6 +348,7 @@ function cancelSleep() {
 使い方（画面側）：
   fastForward(8 * 60);  // 8時間進める
 */
+
 function fastForward(minutes) {
     const forwardMinute = Number(minutes);
     if (!(forwardMinute > 0)) {
@@ -337,7 +362,7 @@ function fastForward(minutes) {
 
 /* デモ用：全部消して最初の状態に戻す
 
-1. bank.js が保存している4つ（history / settings / timeOffset / sleptAt）を消す
+1. bank.js が保存している5つ（history / settings / timeOffset / sleptAt/ sleptTargetHours）を消す
    ・localStorage.clear() は使わない（同じサイトのほかのページのデータまで消えるため）
 2. 成功を返す { ok: true }（失敗はしない）
 
@@ -354,6 +379,7 @@ function resetDemo() {
 
     return { ok: true };
 }
+
 // 次に起きる予定の日時を返す（例：今が23時・起床7:00 → 明日の7:00）
 // night.js の nextWakeTime を移したもの
 function nextWakeTime(from, wakeTime) {
