@@ -354,6 +354,73 @@ function resetDemo() {
 
     return { ok: true };
 }
+// 次に起きる予定の日時を返す（例：今が23時・起床7:00 → 明日の7:00）
+// night.js の nextWakeTime を移したもの
+function nextWakeTime(from, wakeTime) {
+    const [h, m] = wakeTime.split(":").map(Number); // "07:00" → [7, 0]
+    const wake = new Date(from);
+    wake.setHours(h, m, 0, 0);         // その日の7:00にする
+    if (wake <= from) {
+        wake.setDate(wake.getDate() + 1); // もう過ぎていたら次の日の7:00
+    }
+    return wake;
+}
+
+/* 今夜の見込み（夜画面の「今寝ると明日の借金いくら」用）
+
+1. もう寝ている → 失敗（ALREADY_SLEEPING）
+2. 設定がない → 失敗（NO_SETTINGS）
+3. 寝る時刻 ＝ 渡された時刻（なければ今）
+4. 起きる時刻 ＝ 寝る時刻の次に来る起床予定（settings.wakeTime）
+5. 「もしこの時刻に寝て、起床予定に起きたら」の仮の1行を作る
+6. 仮の1行を足した履歴で calcDebt … 保存はしない（見込みだから）
+7. 成功を返す
+   ・projectedDebt：明日の朝の借金の見込み
+   ・change：今の借金からの増減（利息込み）
+   ・sleepMinutes：見込みの睡眠時間（分）
+   ・wakeAt：起きる予定の時刻
+*/
+
+function previewTonight(sleepAt){
+    // 1. もう寝ている → 失敗
+    if(load("sleptAt", null)){
+        return { ok: false, code: "ALREADY_SLEEPING", reason: "もう寝ています" }
+    }
+    // 2. 設定がない → 失敗
+    const settings = load("settings", null);
+    if(!settings){
+        return { ok: false, code: "NO_SETTINGS", reason: "先に目標睡眠時間を設定してね"}
+    }
+    // 3. 寝る時刻（なければ今）
+    const sleepTime = sleepAt || now();
+
+    // 4. 起きる時刻
+    const wakeTime = nextWakeTime(sleepTime, settings.wakeTime);
+    const wakeDay = formatDateTime(wakeTime).slice(0, 10);
+
+    // 5. 仮の1行を作る
+    const tonight = {
+        date: addDays(wakeDay, -1), // その夜 ＝ 起きる日の前日
+        sleptAt: formatDateTime(sleepTime),
+        wokeAt: formatDateTime(wakeTime),
+        targetHours: settings.targetHours,
+        manual: false
+    };
+
+    // 6. calcDebt を呼ぶ（保存はしない）
+    const history = load("history", []);
+    const projectedDebt = calcDebt([...history, tonight], wakeDay).debt;
+    const currentDebt = calcDebt(history, todayString()).debt;
+    
+    // 7.返す
+    return {
+        ok: true,
+        projectedDebt,
+        change: projectedDebt - currentDebt,
+        sleepMinutes: sleepMinutesBetween(tonight.sleptAt, tonight.wokeAt),
+        wakeAt: tonight.wokeAt
+    };
+}
 
 // Node.jsでテストするための1行（ブラウザでは無視される）
 if (typeof module !== "undefined") {
