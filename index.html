@@ -1,106 +1,121 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>睡眠銀行</title>
-    <style>
-        body {
-            max-width: 420px;
-            margin: 0 auto;
-            padding: 24px 20px;
-            background: #f3f6fa;
-            color: #243247;
-            font-family: sans-serif;
-            line-height: 1.6;
-        }
-
-        h1 { font-size: 24px; }
-        h2 { margin-top: 0; font-size: 18px; }
-
-        section {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 12px;
-            background: #fff;
-        }
-
-        #coin-count {
-            font-size: 36px;
-            font-weight: bold;
-        }
-
-        .character-placeholder {
-            padding: 24px 12px;
-            border: 2px dashed #b8c5d6;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .character-message {
-            padding: 12px;
-            border-radius: 8px;
-            background: #f3f6fa;
-        }
-
-        button {
-            width: 100%;
-            min-height: 48px;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background: #2859a3;
-            color: #fff;
-            font: inherit;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:focus-visible {
-            outline: 3px solid #243247;
-            outline-offset: 3px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>睡眠銀行</title>
+  <!-- ドット文字のフォント（読めないときは普通のゴシックになる） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <header>
-        <h1>睡眠銀行</h1>
-    </header>
-    <main>
-        <div id="home-screen" hidden>
-            <section aria-labelledby="coin-heading">
-                <h2 id="coin-heading" tabindex="-1">現在のコイン数</h2>
-                <!-- 仮の数値です。計算処理との接続は後から行います。 -->
-                <p><span id="coin-count">0</span> コイン</p>
-            </section>
-            <section aria-labelledby="character-heading">
-                <h2 id="character-heading">窓口キャラクター</h2>
-                <!-- キャラクターの画像ができたら、この枠を画像に置き換えます。 -->
-                <p class="character-placeholder">キャラクター準備中</p>
-                <!-- 計算処理につなぐまでは、数値を表示しません。 -->
-                <p>今回の利息：<span id="interest-result">未計算</span></p>
-                <p class="character-message" id="character-message">今日も睡眠銀行へようこそ。ゆっくり休んでね。</p>
-            </section>
+<body class="is-night">
+  <!--
+    画面はこの1枚だけ。朝も夜も同じ画面で、中身だけ入れかわる。
+    ・おやすみ前：見込み（今寝ると / あと1時間起きると）＋ おやすみボタン
+    ・おやすみ中：寝た時刻と今の睡眠時間 ＋ おはようボタン
+    ・おはようの結果は、ひつじのセリフで伝える
+  -->
+  <main class="app">
+
+    <!-- 1. 借金（いちばん上） -->
+    <section class="panel hud" aria-label="今の借金">
+      <div class="hud-top">
+        <span class="coin" aria-hidden="true"></span>
+        <span class="debt-number" id="debt">0</span>
+        <span class="debt-unit">コインの借金</span>
+        <span class="chips">
+          <span class="chip" id="streak">🔥0日</span>
+          <span class="chip" id="rank" hidden></span>
+          <button class="chip chip-button" id="settingsButton" type="button" aria-label="設定">⚙</button>
+        </span>
+      </div>
+      <div class="hud-bottom">
+        <span id="progressLabel">完済まで</span>
+        <span id="remaining">あと 0</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="bar"></div></div>
+    </section>
+
+    <!-- 2. 窓口（ひつじ） -->
+    <section class="panel stage" aria-label="窓口">
+      <p class="sign">睡眠銀行 ひつじ支店</p>
+      <div class="chara" id="charaBox">
+        <canvas id="chara" width="32" height="32" role="img" aria-label="窓口のひつじ"></canvas>
+        <span class="zzz" aria-hidden="true">Z<small>z</small><small>z</small></span>
+      </div>
+    </section>
+
+    <!-- 3. セリフ（押すと次のセリフへ） -->
+    <section class="panel dialog" id="dialog" aria-live="polite">
+      <span class="name">ひつじ</span>
+      <p class="line" id="line"></p>
+      <span class="next" id="next" aria-hidden="true">▼</span>
+    </section>
+
+    <!-- 4. 見込み・おやすみ中・設定（どれか1つだけ表示） -->
+    <section class="panel info">
+      <div class="cards" id="previewArea">
+        <div class="card">
+          <p class="card-label">今寝ると</p>
+          <p class="card-value gold" id="deltaNow">-</p>
         </div>
+        <div class="card">
+          <p class="card-label">あと1時間起きると</p>
+          <p class="card-value red" id="deltaLater">-</p>
+        </div>
+      </div>
 
-        <section id="sleeping-screen" aria-labelledby="sleeping-heading">
-            <h2 id="sleeping-heading" tabindex="-1">睡眠中</h2>
-            <p>おやすみなさい。ゆっくり休んでください。</p>
-            <button id="wake-up" type="button">起きた</button>
-        </section>
+      <div id="sleepingArea" hidden>
+        <div class="cards">
+          <div class="card">
+            <p class="card-label">おやすみした時刻</p>
+            <p class="card-value" id="sleptClock">-</p>
+          </div>
+          <div class="card">
+            <p class="card-label">ここまでの睡眠</p>
+            <p class="card-value gold" id="sleptFor">-</p>
+          </div>
+        </div>
+        <button class="text-button" id="cancelButton" type="button" hidden>まちがえた！おやすみを取り消す</button>
+      </div>
 
-        <section id="morning-screen" aria-labelledby="morning-heading" hidden>
-            <h2 id="morning-heading" tabindex="-1">おはようございます</h2>
-            <p>昨夜はよく眠れましたか？</p>
-            <button id="show-result" type="button">結果を見る</button>
-        </section>
+      <form id="settingsArea" class="settings" hidden>
+        <label>目標睡眠
+          <input type="number" id="targetInput" min="4" max="12" step="0.5" required> 時間
+        </label>
+        <label>起きる予定
+          <input type="time" id="wakeInput" required>
+        </label>
+        <button class="mini mini-strong" type="submit">保存</button>
+      </form>
+    </section>
 
-        <section id="result-screen" aria-labelledby="result-heading" hidden>
-            <h2 id="result-heading" tabindex="-1">今回の睡眠結果</h2>
-            <p>睡眠時間とコインの計算結果は、計算処理をつないだ後に表示します。</p>
-            <button id="back-home" type="button">ホームに戻る</button>
-        </section>
-    </main>
-    <script src="morning.js"></script>
+    <!-- 5. ボタン（押せるのはどちらか片方だけ） -->
+    <div class="actions">
+      <button class="btn btn-night" id="goodnightButton" type="button">🌙 おやすみ</button>
+      <button class="btn btn-morning" id="goodmorningButton" type="button">☀ おはよう</button>
+    </div>
+
+    <!-- 6. デモ用（発表で表情や朝夜を見せる） -->
+    <nav class="demo" aria-label="デモ">
+      <span>デモ：</span>
+      <button class="mini" type="button" data-mood="normal">ふつう</button>
+      <button class="mini" type="button" data-mood="happy">よろこぶ</button>
+      <button class="mini" type="button" data-mood="sad">しょんぼり</button>
+      <button class="mini" type="button" data-mood="sleep">ねてる</button>
+      <button class="mini" type="button" id="themeButton">朝/夜</button>
+      <!-- bank.js に fastForward / resetDemo があるときだけ表示する -->
+      <button class="mini" type="button" id="forwardButton" hidden>+8時間</button>
+      <button class="mini" type="button" id="resetButton" hidden>リセット</button>
+    </nav>
+  </main>
+
+  <!-- 読み込む順番が大事：bank.js（計算） → app.js（共通の描画） → 夜 → 朝 -->
+  <script src="bank.js"></script>
+  <script src="app.js"></script>
+  <script src="night.js"></script>
+  <script src="morning.js"></script>
 </body>
 </html>

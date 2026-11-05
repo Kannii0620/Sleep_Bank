@@ -1,0 +1,404 @@
+/* style.css — ドット絵風の見た目（1画面だけ）
+
+1. 色（夜・朝）
+2. ページ全体
+3. パネル（白いふち＋黒い外わく）
+4. 借金
+5. 窓口（カーテン・床・看板・ひつじ）
+6. セリフ
+7. 見込み・設定
+8. ボタン
+9. デモ
+*/
+
+
+/* ===== 1. 色 ===== */
+
+:root {
+    --ink: #14112a;          /* 外わく */
+    --panel: #1f2a6b;        /* パネルの中 */
+    --card: #18204f;         /* パネルの中の箱 */
+    --text: #ffffff;
+    --sub: #c9cdf2;
+    --gold: #ffd23f;
+    --red: #ff5f7a;
+    --green: #4cc85a;
+    --blue: #5b7cff;
+    --bg-top: #0e0f33;
+    --bg-bottom: #2a1f63;
+    --curtain-a: #1d2766;
+    --curtain-b: #283585;
+    --floor-a: #5a3d2e;
+    --floor-b: #6b4a37;
+}
+
+/* 朝はカーテンと背景を明るくする */
+body.is-morning {
+    --bg-top: #4f86d9;
+    --bg-bottom: #f2b880;
+    --curtain-a: #4a7bd0;
+    --curtain-b: #6595e3;
+    --floor-a: #8a6040;
+    --floor-b: #9c6f4b;
+}
+
+
+/* ===== 2. ページ全体 ===== */
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(var(--bg-top), var(--bg-bottom));
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: "DotGothic16", "Hiragino Kaku Gothic ProN", sans-serif;
+    line-height: 1.5;
+    transition: background 0.6s;
+}
+
+.app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+p { margin: 0; }
+[hidden] { display: none !important; }
+
+
+/* ===== 3. パネル ===== */
+
+.panel {
+    position: relative;
+    padding: 16px;
+    border: 4px solid #fff;
+    border-radius: 6px;
+    background: var(--panel);
+    /* 外側の黒いわく＋下に少し厚み */
+    box-shadow: 0 0 0 4px var(--ink), 0 6px 0 4px var(--ink);
+}
+
+
+/* ===== 4. 借金 ===== */
+
+.hud-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.coin {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #ffe57a 0 35%, var(--gold) 36% 60%, #d99a1a 61%);
+    box-shadow: 0 0 0 3px var(--ink);
+}
+
+.debt-number {
+    color: var(--gold);
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.debt-unit { font-size: 1.05rem; }
+
+.chips {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.chip {
+    padding: 2px 10px;
+    border-radius: 4px;
+    background: var(--card);
+    box-shadow: 0 0 0 2px var(--ink);
+    font: inherit;
+    color: inherit;
+    white-space: nowrap;
+}
+
+.chip-button {
+    border: none;
+    cursor: pointer;
+}
+
+.hud-bottom {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    color: var(--sub);
+}
+
+.bar {
+    height: 16px;
+    margin-top: 6px;
+    padding: 3px;
+    background: #111;
+    box-shadow: 0 0 0 3px var(--ink);
+}
+
+.bar-fill {
+    height: 100%;
+    width: 0;
+    background: var(--green);
+    box-shadow: inset 0 -3px 0 #2f9a3c;
+    transition: width 0.6s steps(12);
+}
+
+
+/* ===== 5. 窓口 ===== */
+
+.stage {
+    height: 260px;
+    padding: 0;
+    overflow: hidden;
+    /* 上はカーテン、下3割は床 */
+    background:
+        repeating-linear-gradient(90deg, var(--floor-a) 0 12%, var(--floor-b) 12% 24%) bottom / 100% 30% no-repeat,
+        repeating-linear-gradient(90deg, var(--curtain-a) 0 32px, var(--curtain-b) 32px 64px);
+}
+
+.stage::after {
+    /* 床とカーテンのさかいめの線 */
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 30%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.sign {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 16px;
+    background: var(--gold);
+    color: #2a2140;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    box-shadow: 0 0 0 3px var(--ink);
+    z-index: 1;
+}
+
+.chara {
+    position: absolute;
+    left: 50%;
+    bottom: 12%;
+    width: 160px;
+    height: 160px;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+#chara {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated; /* ドットをぼかさない */
+    animation: bob 1.6s steps(2) infinite;
+}
+
+/* 表情ごとの動き */
+.chara[data-mood="happy"] #chara { animation: hop 0.5s steps(2) infinite; }
+.chara[data-mood="sad"] #chara { animation: droop 2.4s steps(2) infinite; }
+.chara[data-mood="sleep"] #chara { animation: breathe 2.8s steps(2) infinite; }
+
+@keyframes bob { 50% { transform: translateY(-4px); } }
+@keyframes hop { 50% { transform: translateY(-14px); } }
+@keyframes droop { 50% { transform: translateY(4px); } }
+@keyframes breathe { 50% { transform: scale(1.03, 0.97) translateY(3px); } }
+
+/* ねてるときだけ Zzz を出す */
+.zzz {
+    position: absolute;
+    top: 0;
+    right: -14px;
+    display: none;
+    color: #fff;
+    font-size: 1.6rem;
+    text-shadow: 2px 2px 0 var(--ink);
+    animation: float 2.4s steps(4) infinite;
+}
+.zzz small { font-size: 0.7em; margin-left: 2px; }
+.chara[data-mood="sleep"] .zzz { display: block; }
+
+@keyframes float {
+    0% { transform: translateY(8px); opacity: 0; }
+    30% { opacity: 1; }
+    100% { transform: translateY(-16px); opacity: 0; }
+}
+
+
+/* ===== 6. セリフ ===== */
+
+.dialog {
+    min-height: 104px;
+    padding-top: 22px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.name {
+    position: absolute;
+    top: -16px;
+    left: 20px;
+    padding: 0 10px;
+    background: var(--blue);
+    box-shadow: 0 0 0 3px var(--ink);
+    font-size: 0.95rem;
+}
+
+.line { font-size: 1.15rem; }
+
+.next {
+    position: absolute;
+    right: 16px;
+    bottom: 8px;
+    animation: blink 0.8s steps(1) infinite;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+
+/* ===== 7. 見込み・設定 ===== */
+
+.cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.card {
+    padding: 12px 14px;
+    background: var(--card);
+    box-shadow: 0 0 0 3px var(--ink);
+}
+
+.card-label { font-size: 0.95rem; }
+
+.card-value {
+    margin-top: 4px;
+    font-size: 1.8rem;
+    line-height: 1.1;
+}
+.gold { color: var(--gold); }
+.red { color: var(--red); }
+
+.text-button {
+    display: block;
+    margin: 12px auto 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--sub);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.settings {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings input {
+    width: 6em;
+    padding: 4px 6px;
+    border: none;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    box-shadow: 0 0 0 3px var(--ink);
+}
+
+
+/* ===== 8. ボタン ===== */
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.btn {
+    min-height: 64px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font: inherit;
+    font-size: 1.5rem;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    box-shadow: 0 0 0 4px var(--ink), inset 0 -8px 0 rgba(0, 0, 0, 0.25);
+}
+
+.btn-night { background: var(--blue); }
+.btn-morning { background: #f0a43a; }
+
+.btn:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 4px var(--ink), inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.btn:disabled {
+    background: #7a7a7a;
+    color: #b8b8b8;
+    cursor: default;
+}
+
+.btn:focus-visible,
+.mini:focus-visible,
+.chip-button:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 4px;
+}
+
+
+/* ===== 9. デモ ===== */
+
+.demo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-shadow: 2px 2px 0 var(--ink);
+}
+
+.mini {
+    padding: 2px 8px;
+    border: none;
+    border-radius: 2px;
+    font-size: 0.9rem;
+    text-shadow: none;
+    background: #d6d6e6;
+    color: #2a2140;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.mini-strong {
+    background: var(--gold);
+}
+
+
+/* スマホの細い画面 */
+@media (max-width: 400px) {
+    .debt-number { font-size: 1.8rem; }
+    .btn { font-size: 1.2rem; }
+    .card-value { font-size: 1.5rem; }
+    .chips { margin-left: 0; }
+}
