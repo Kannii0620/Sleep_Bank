@@ -199,7 +199,7 @@ function goodmorning() {
     history.push(record);
     save("history", history);
     save("sleptAt", null);
-    save("sleptTargetHours", null);
+    localStorage.removeItem("sleptTargetHours");
 
     // 7. 足した後の借金
     const debtAfter = calcDebt(history, today).debt;
@@ -275,8 +275,8 @@ function getStatus() {
 
     }
 
-    //6.昨日が未記録か(初日は除く)
-    const missedYesterday = history.length !== 0 && !record;//初日以外での、未記録
+    //6.昨日が未記録か(初日と、寝ている時は除く)
+    const missedYesterday = history.length !== 0 && !record && !isSleeping;//初日以外での、未記録
 
     // 7. 信用ランク（連続達成日数で決める）
     const streak = result.streak;
@@ -333,7 +333,7 @@ function cancelSleep() {
         return { ok: false, code: "NOT_SLEEPING", reason: "まだおやすみしていません" };
     }
     save("sleptAt", null);
-    save("sleptTargetHours", null);
+    localStorage.removeItem("sleptTargetHours");
     return { ok: true, sleptAt };
 
 }
@@ -351,8 +351,8 @@ function cancelSleep() {
 
 function fastForward(minutes) {
     const forwardMinute = Number(minutes);
-    if (!(forwardMinute > 0)) {
-        return { ok: false, code: "INVALID_FORWARD_TIME", reason: "早送りは1分以上の数字にしてね" };
+    if (!(forwardMinute >= 1 && forwardMinute <= 10080 && Number.isInteger(forwardMinute))) {
+        return { ok: false, code: "INVALID_FORWARD_TIME", reason: "早送りは1分～1週間(10080分)の整数にしてね" };
     }
     const timeOffset = load("timeOffset", 0);
     const forwardTime = timeOffset + forwardMinute;
