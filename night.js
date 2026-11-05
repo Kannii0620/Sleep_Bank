@@ -65,14 +65,16 @@ function previewDebt(history, targetHours, sleepAt, wake) {
 
 // ===== 3. 夜のひつじのセリフ =====
 
+// 借金の多さで2行目を変える。1行目は app.js の MOOD_LINES（ふつう）からランダム
 function nightLines(status) {
+    const hello = pickLine(MOOD_LINES.normal);
     if (status.debt === 0) {
-        return ["いらっしゃいませ〜 借金ゼロ！", "今夜もこの調子で記帳していってね"];
+        return [hello, "借金ゼロ！ 今夜もこの調子でね"];
     }
     if (status.debt < 300) {
-        return ["いらっしゃいませ〜 今夜も記帳していってね", "少し借金があるよ。早めに寝て返していこう"];
+        return [hello, "少し借金があるよ。早めに寝て返していこう"];
     }
-    return ["そろそろ返してほしいな…", "今夜こそ早く寝よう？ 利息がふえちゃうよ"];
+    return [hello, "そろそろ返してほしいな… 利息がふえちゃうよ"];
 }
 
 

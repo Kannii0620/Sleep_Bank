@@ -313,10 +313,11 @@ function greetingLines(status, settings) {
 // ===== 6. デモ用ボタン =====
 
 function setupDemo() {
-    // 4つの表情（顔だけ変える。セリフはそのまま）
+    // 4つの表情：顔を変えて、その表情のセリフを1つ言う
     document.querySelectorAll("[data-mood]").forEach(button => {
         button.addEventListener("click", () => {
             setMood(button.dataset.mood);
+            say(pickLine(MOOD_LINES[button.dataset.mood]));
         });
     });
 
@@ -347,6 +348,48 @@ function setupDemo() {
         });
     }
 }
+
+// 表情ごとのセリフ。押すたびにこの中から1つ選ぶ
+const MOOD_LINES = {
+    normal: [
+        "いらっしゃいませ〜 今夜も記帳していってね",
+        "睡眠銀行 ひつじ支店へようこそ",
+        "今日はどんな一日だった？",
+        "通帳の記帳はおやすみボタンからどうぞ",
+        "ひつじが1匹、ひつじが2匹…あ、ぼくか",
+    ],
+    happy: [
+        "目標達成！ 借金がへったよ、えらい！",
+        "よく眠れたね！ 毛並みもつやつやだよ",
+        "この調子なら完済も近いね！",
+        "返済ありがとう〜 ひつじ支店も大よろこび！",
+        "ぐっすり記帳、ばっちりだね！",
+    ],
+    sad: [
+        "そろそろ返してほしいな…",
+        "利息がふえちゃうよ…今夜こそ早く寝よう？",
+        "昨日はちょっと寝不足だったね…",
+        "借金、じわじわふえてるよ…",
+        "ひつじ、ちょっと心配だな…",
+    ],
+    sleep: [
+        "……zzz",
+        "……むにゃ…もう食べられない…",
+        "……zzz 利息は…あしたで…",
+        "……すぴー",
+        "……ひつじが…1000匹…zzz",
+    ],
+};
+
+let lastPickedLine = "";
+
+// セリフの候補から1つ選ぶ（同じセリフが続けて出ないようにする）
+function pickLine(lines) {
+    const choices = lines.length > 1 ? lines.filter(line => line !== lastPickedLine) : lines;
+    lastPickedLine = choices[Math.floor(Math.random() * choices.length)];
+    return lastPickedLine;
+}
+
 
 // ===== 7. ページを開いたときに動かす =====
 
