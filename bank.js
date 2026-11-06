@@ -131,7 +131,7 @@ function todayString() {
 function goodnight() {
     // 1. 設定がない → 失敗
     const settings = load("settings", null);
-    if (!settings){
+    if (!settings) {
         return { ok: false, code: "NO_SETTINGS", reason: "先に目標睡眠時間を設定してね" }
     }
     // 2. もう寝ている → 失敗
@@ -281,25 +281,25 @@ function getStatus() {
     // 7. 信用ランク（連続達成日数で決める）
     const streak = result.streak;
     let rank = "bronze";
-    if(streak >= 0 && streak <3){
+    if (streak >= 0 && streak < 3) {
         rank = "bronze";
     }
-    else if(streak >= 3 && streak <7){
+    else if (streak >= 3 && streak < 7) {
         rank = "silver";
     }
-    else if(streak >= 7 && streak <14){
+    else if (streak >= 7 && streak < 14) {
         rank = "gold";
     }
-    else if(streak >= 14 && streak <21){
+    else if (streak >= 14 && streak < 21) {
         rank = "platinum";
     }
-    else if(streak >= 21 && streak <28){
+    else if (streak >= 21 && streak < 28) {
         rank = "master";
     }
-    else if(streak >= 28){
+    else if (streak >= 28) {
         rank = "predator";
     }
-    
+
     //8. まとめて返す
     return {
         ok: true,
@@ -407,15 +407,15 @@ function nextWakeTime(from, wakeTime) {
    ・wakeAt：起きる予定の時刻
 */
 
-function previewTonight(sleepAt){
+function previewTonight(sleepAt) {
     // 1. もう寝ている → 失敗
-    if(load("sleptAt", null)){
+    if (load("sleptAt", null)) {
         return { ok: false, code: "ALREADY_SLEEPING", reason: "もう寝ています" }
     }
     // 2. 設定がない → 失敗
     const settings = load("settings", null);
-    if(!settings){
-        return { ok: false, code: "NO_SETTINGS", reason: "先に目標睡眠時間を設定してね"}
+    if (!settings) {
+        return { ok: false, code: "NO_SETTINGS", reason: "先に目標睡眠時間を設定してね" }
     }
     // 3. 寝る時刻（なければ今）
     const sleepTime = sleepAt || now();
@@ -437,7 +437,7 @@ function previewTonight(sleepAt){
     const history = load("history", []);
     const projectedDebt = calcDebt([...history, tonight], wakeDay).debt;
     const currentDebt = calcDebt(history, todayString()).debt;
-    
+
     // 7.返す
     return {
         ok: true,
@@ -446,6 +446,86 @@ function previewTonight(sleepAt){
         sleepMinutes: sleepMinutesBetween(tonight.sleptAt, tonight.wokeAt),
         wakeAt: tonight.wokeAt
     };
+}
+/* 通帳（毎晩の記録を、銀行の通帳みたいに1行ずつ並べる）
+
+1. 履歴を読む。空なら行なし
+2. 一番古い日から昨日まで、1日ずつ繰り返す（calcDebt と同じ順番で計算する）
+   2-1. 利息を足す → 0より大きければ「リソク」の行
+   2-2. その夜の記録を探す
+   2-3. 記録があったら → 睡眠を反映して「スイミン 8:00」の行
+        ・borrow：増えた分 / repay：実際に減った分（0で止まった分は書かない）
+        ・paidOff：この行で借金が0になったら true（完済マーク用）
+   2-4. 記録がなかったら → 「ミキチョウ」の行（昨日の夜は、まだ記帳できるので出さない）
+3. 行をまとめて返す { ok: true, rows }
+   ・1行：{ date, memo, borrow, repay, balance, paidOff }
+   ・最後の行の balance は、calcDebt の借金と同じになる
+*/
+function getPassbook() {
+    //1. 履歴を読む。空なら行なし
+    const history = load("history", []);
+    const today = todayString();
+    const rows = [];          // 通帳の行をためる
+    let debt = 0;
+    if (history.length === 0) {
+        return { ok: true, rows };
+    }
+    const firstDay = history.map(r => r.date).sort()[0];
+    const lastDay = addDays(today, -1);
+    let day = firstDay;
+
+    //2. 一番古い日から昨日まで、1日ずつ繰り返す（calcDebt と同じ順番で計算する）
+    while (day <= lastDay) {
+        // 2-1. 利息
+        const beforeDebt = debt;
+        debt = Math.floor(debt * INTEREST_RATE);
+        const interest = debt - beforeDebt;
+        if (interest > 0) {
+            rows.push({ date: day, memo: "リソク", borrow: interest, repay: 0, balance: debt, paidOff: false });
+        }
+
+        // 2-2. 記録を探す（calcDebt と同じ）
+        const record = history.find(r => r.date === day);
+
+        // 2-3. 記録があったら
+        if (record) {
+            const beforeSleep = debt;
+
+            const sleepMinutes = sleepMinutesBetween(record.sleptAt, record.wokeAt);
+            const diffMinutes = (record.targetHours * 60) - sleepMinutes;
+            if (diffMinutes <= 0) {
+                debt = (debt - Math.floor((Math.abs(diffMinutes) * COINS_PER_HOUR / 60)));
+                if (debt <= 0) {
+                    debt = 0;
+                }
+            } else {
+                debt = (debt + Math.floor((Math.abs(diffMinutes) * COINS_PER_HOUR / 60)));
+            }
+
+            const borrow = Math.max(0, debt - beforeSleep);
+            const repay = Math.max(0, beforeSleep - debt);
+            rows.push({
+                date: day,
+                memo: "スイミン " + Math.floor(sleepMinutes / 60) + ":" + String(sleepMinutes % 60).padStart(2, "0"),       // 「8:00」みたいな時間
+                borrow,
+                repay,
+                balance: debt,
+                paidOff: beforeSleep > 0 && debt === 0                 // この行で0になったかどうか
+            });
+        } else if (day !== lastDay) {
+            rows.push({
+                date: day,
+                memo: "ミキチョウ",
+                borrow: 0,
+                repay: 0,
+                balance: debt,
+                paidOff: false               // この行で0になったかどうか
+            });
+        }
+        day = addDays(day, 1);
+    }
+    //3. 行をまとめて返す { ok: true, rows }
+    return { ok: true, rows };
 }
 
 // Node.jsでテストするための1行（ブラウザでは無視される）
